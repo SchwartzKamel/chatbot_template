@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "chatbot-template"
+version = "0.1.0"
+description = ""
+authors = ["SchwartzKamel <tommy.weber123@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+google-adk = "^1.14.1"
+openai = "^1.108.2"
+litellm = "^1.77.3"
+python-dotenv = "^1.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
