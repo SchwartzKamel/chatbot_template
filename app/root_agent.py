@@ -1,22 +1,54 @@
-import os
+"""Root agent module for the chatbot_template project.
+
+This module defines the `root_agent` for ADK loader compatibility,
+providing tools to answer questions about the time and weather in a city.
+Environment configuration is loaded from `.env` and validated before agent initialization.
+"""
+
+import sys
+import logging
 import datetime
 from zoneinfo import ZoneInfo
+
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables once
 load_dotenv()
 
-AZURE_API_KEY = os.getenv("AZURE_API_KEY")
-AZURE_API_BASE = os.getenv("AZURE_API_BASE")
-AZURE_API_VERSION = os.getenv("AZURE_API_VERSION")
-AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+# Centralized environment variable loading
+from dotenv import dotenv_values
 
-# Debug logging to verify environment variables
-print(f"[DEBUG] AZURE_API_KEY loaded: {'SET' if AZURE_API_KEY else 'NOT SET'}")
-print(f"[DEBUG] AZURE_API_BASE loaded: {AZURE_API_BASE}")
-print(f"[DEBUG] AZURE_API_VERSION loaded: {AZURE_API_VERSION}")
-print(f"[DEBUG] AZURE_DEPLOYMENT_NAME loaded: {AZURE_DEPLOYMENT_NAME}")
+# Centralized environment variable loading without os.getenv
+config = dotenv_values()
+
+AZURE_API_KEY = config.get("AZURE_API_KEY")
+AZURE_API_BASE = config.get("AZURE_API_BASE")
+AZURE_API_VERSION = config.get("AZURE_API_VERSION")
+AZURE_DEPLOYMENT_NAME = config.get("AZURE_DEPLOYMENT_NAME")
+
+# Validate required environment variables
+missing_vars = [
+    var
+    for var, value in {
+        "AZURE_API_KEY": AZURE_API_KEY,
+        "AZURE_API_BASE": AZURE_API_BASE,
+        "AZURE_API_VERSION": AZURE_API_VERSION,
+        "AZURE_DEPLOYMENT_NAME": AZURE_DEPLOYMENT_NAME,
+    }.items()
+    if not value
+]
+if missing_vars:
+    logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+    sys.exit(1)
+
+# Log non-sensitive configuration status
+logger.info("Azure API configuration loaded successfully.")
 
 
 def get_weather(city: str) -> dict:
@@ -73,10 +105,7 @@ def get_current_time(city: str) -> dict:
 # Explicitly export root_agent so ADK can detect it
 __all__ = ["root_agent"]
 
-AZURE_API_KEY = os.getenv("AZURE_API_KEY")
-AZURE_API_BASE = os.getenv("AZURE_API_BASE")
-AZURE_API_VERSION = os.getenv("AZURE_API_VERSION")
-AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+# Removed duplicate environment variable loading here (already loaded above)
 
 root_agent = LlmAgent(
     name="weather_time_agent",
@@ -84,7 +113,7 @@ root_agent = LlmAgent(
         model=f"azure/{AZURE_DEPLOYMENT_NAME}",  # LiteLLM Azure deployment name format
         api_key=AZURE_API_KEY,
         api_base=AZURE_API_BASE,
-        api_version=AZURE_API_VERSION
+        api_version=AZURE_API_VERSION,
     ),
     description=("Agent to answer questions about the time and weather in a city."),
     instruction=("I can answer your questions about the time and weather in a city."),
