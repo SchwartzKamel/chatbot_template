@@ -1,0 +1,28 @@
+# General
+.git
+.gitignore
+.dockerignore
+.env
+.env.*
+*.pyc
+__pycache__
+.pytest_cache
+.coverage
+*.swp
+*.swo
+
+# Development
+Dockerfile
+docker-compose*
+.vscode
+.idea
+tests/
+docs/
+examples/
+notebooks/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+poetry.lock
