@@ -7,11 +7,24 @@ TAG ?= latest
 .PHONY: build clean run
 
 build:
+	docker buildx build --no-cache -f $(DOCKERFILE) -t $(IMAGE_NAME):$(TAG) --load .
+
+build-cache:
 	docker buildx build -f $(DOCKERFILE) -t $(IMAGE_NAME):$(TAG) --load .
 
-# Run the Docker container
+# Run the Docker container using Docker Compose
 run:
-	docker run -it --rm -p 8000:8000 --env-file .env $(IMAGE_NAME):$(TAG)
+	docker compose up -d
+
+# Stop the Docker container using Docker Compose
+teardown:
+	docker compose down
+
+# Auto build and run
+auto: build run
+
+# Auto build with cache and run
+auto-cache: build-cache run
 
 # Clean up Docker images related to this project
 clean:
