@@ -1,12 +1,13 @@
 # Chatbot Template
 
 A minimal Python-based chatbot agent compatible with the **ADK loader**.  
-This template demonstrates basic agent functionality with static demo outputs for weather and time queries.
+This template demonstrates basic agent functionality that integrates with the Context7 MCP server for enhanced capabilities.
 
 ## Prerequisites
 
 - **Python**: 3.9 or later
 - **ADK** (Agent Development Kit) installed
+- **Docker** (optional, for containerized deployment)
 - Dependencies listed in `pyproject.toml`
 
 ## Setup
@@ -34,6 +35,16 @@ This template demonstrates basic agent functionality with static demo outputs fo
    adk web
    ```
 
+## Quickstart with Docker
+
+For a faster setup and deployment using Docker, use the provided Makefile command:
+
+```bash
+make auto-cache
+```
+
+This command builds the Docker image with cache for quicker subsequent builds and runs the container using Docker Compose.
+
 ## Environment Variables
 
 The following variables **must** be set in `.env`:
@@ -42,32 +53,6 @@ The following variables **must** be set in `.env`:
 - `AZURE_API_BASE` — Azure API base URL
 - `AZURE_API_VERSION` — Azure API version
 - `AZURE_DEPLOYMENT_NAME` — Azure deployment name
+- `CONTEXT7_API_KEY` — (Optional) API key for Context7 MCP server integration
 
 > **Note**: Do **not** commit your `.env` file or share sensitive values.
-
-## Usage
-
-Once running, the chatbot responds to:
-- `get_weather` — Returns static weather data for New York.
-- `get_current_time` — Returns the current time in New York.
-
-Example:
-```plaintext
-User: What's the weather in New York?
-Bot: The weather in New York is sunny, 25°C.
-```
-
-## Limitations
-
-- Weather and time data are **static** and only for **New York**.
-- No dynamic API integration for real-time data.
-- Single-threaded, synchronous execution.
-
-## Future Improvements
-
-- Integrate live weather and time APIs.
-- Support multiple cities and dynamic queries.
-- Add asynchronous execution for better performance.
-- Implement automated tests.
-
----

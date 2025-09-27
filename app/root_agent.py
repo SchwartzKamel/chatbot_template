@@ -7,8 +7,6 @@ Environment configuration is loaded from `.env` and validated before agent initi
 
 import sys
 import logging
-import datetime
-from zoneinfo import ZoneInfo
 
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
@@ -98,15 +96,33 @@ __all__ = ["root_agent"]
 
 # Removed duplicate environment variable loading here (already loaded above)
 
-root_agent = LlmAgent(
-    name="mcp_agent",
+# Define individual agents for the multi-agent system
+tool_runner = LlmAgent(
+    name="ToolRunner",
     model=LiteLlm(
         model=f"azure/{AZURE_DEPLOYMENT_NAME}",  # LiteLLM Azure deployment name format
         api_key=AZURE_API_KEY,
         api_base=AZURE_API_BASE,
         api_version=AZURE_API_VERSION,
     ),
-    description=("Agent integrated with Context7 MCP server for enhanced capabilities."),
-    instruction=("I can assist with a variety of tasks using tools from the Context7 MCP server."),
+    description="I am responsible for running tools and executing specific functions.",
+    instruction="I can execute tools and provide results as needed.",
     tools=[connect_to_context7_mcp],
 )
+
+# Create orchestrator agent and assign sub-agents
+orchestrator = LlmAgent(
+    name="Orchestrator",
+    model=LiteLlm(
+        model=f"azure/{AZURE_DEPLOYMENT_NAME}",  # LiteLLM Azure deployment name format
+        api_key=AZURE_API_KEY,
+        api_base=AZURE_API_BASE,
+        api_version=AZURE_API_VERSION,
+    ),
+    description="I coordinate tasks across multiple agents for efficient operation.",
+    instruction="I manage and delegate tasks to specialized agents.",
+    sub_agents=[tool_runner]
+)
+
+# Set the root agent to be the orchestrator for ADK compatibility
+root_agent = orchestrator
