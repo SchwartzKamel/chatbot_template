@@ -5,7 +5,7 @@ This template demonstrates basic agent functionality that integrates with the Co
 
 ## Prerequisites
 
-- **Python**: 3.9 or later
+- **Python**: 3.12 or later
 - **ADK** (Agent Development Kit) installed
 - **Docker** (optional, for containerized deployment)
 - Dependencies listed in `pyproject.toml`
@@ -37,7 +37,7 @@ This template demonstrates basic agent functionality that integrates with the Co
 
 ## Quickstart with Docker
 
-For a faster setup and deployment using Docker, use the provided Makefile command:
+For a fast setup and deployment using Docker, fill out the .env, then use the provided Makefile command:
 
 ```bash
 make auto-cache
