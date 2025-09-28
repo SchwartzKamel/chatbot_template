@@ -10,20 +10,15 @@ import logging
 
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values
 import httpx
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables once
-load_dotenv()
-
-# Centralized environment variable loading
-from dotenv import dotenv_values
-
 # Centralized environment variable loading without os.getenv
+load_dotenv()
 config = dotenv_values()
 
 AZURE_API_KEY = config.get("AZURE_API_KEY")
@@ -52,34 +47,45 @@ logger.info("Azure API configuration loaded successfully.")
 
 def connect_to_context7_mcp(query: str = "test") -> dict:
     """Searches the Context7 MCP server for information based on a query.
-    
+
     Args:
         query (str): The search query to send to the Context7 API.
-    
+
     Returns:
         dict: Response data from the API or error information.
     """
     CONTEXT7_API_KEY = config.get("CONTEXT7_API_KEY")
     if not CONTEXT7_API_KEY:
         logger.error("Missing CONTEXT7_API_KEY environment variable.")
-        return {"status": "error", "error_message": "Missing API key for Context7 MCP server."}
-    
+        return {
+            "status": "error",
+            "error_message": "Missing API key for Context7 MCP server.",
+        }
+
     client = httpx.Client()
     try:
         headers = {"Authorization": f"Bearer {CONTEXT7_API_KEY}"}
-        response = client.get(f"https://context7.com/api/v1/search?query={query}", headers=headers)
+        response = client.get(
+            f"https://context7.com/api/v1/search?query={query}", headers=headers
+        )
         if response.status_code == 200:
             search_results = response.json()
             logger.info("Successfully queried Context7 MCP server.")
             return {"status": "success", "results": search_results}
         else:
-            logger.error(f"Failed to query Context7 MCP server. Status code: {response.status_code}")
-            return {"status": "error", "error_message": f"Failed with status code: {response.status_code}"}
+            logger.error(
+                f"Failed to query Context7 MCP server. Status code: {response.status_code}"
+            )
+            return {
+                "status": "error",
+                "error_message": f"Failed with status code: {response.status_code}",
+            }
     except Exception as e:
         logger.error(f"Error querying Context7 MCP server: {str(e)}")
         return {"status": "error", "error_message": str(e)}
     finally:
         client.close()
+
 
 # Initialize connection to Context7 MCP server
 context7_tools = connect_to_context7_mcp()
@@ -88,13 +94,8 @@ if context7_tools:
 else:
     logger.warning("No tools loaded from Context7 MCP server.")
 
-# Ensure root_agent is defined at module level for ADK loader
-# ADK expects this exact variable at the top level of the module
-
 # Explicitly export root_agent so ADK can detect it
 __all__ = ["root_agent"]
-
-# Removed duplicate environment variable loading here (already loaded above)
 
 # Define individual agents for the multi-agent system
 tool_runner = LlmAgent(
@@ -121,7 +122,7 @@ orchestrator = LlmAgent(
     ),
     description="I coordinate tasks across multiple agents for efficient operation.",
     instruction="I manage and delegate tasks to specialized agents.",
-    sub_agents=[tool_runner]
+    sub_agents=[tool_runner],
 )
 
 # Set the root agent to be the orchestrator for ADK compatibility
