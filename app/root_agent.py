@@ -8,16 +8,16 @@ Environment configuration is loaded from `.env` and validated before agent initi
 import sys
 import logging
 
+import httpx
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from dotenv import load_dotenv, dotenv_values
-import httpx
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Centralized environment variable loading without os.getenv
+# Centralized environment variable loading
 load_dotenv()
 config = dotenv_values()
 
@@ -106,11 +106,39 @@ tool_runner = LlmAgent(
         api_base=AZURE_API_BASE,
         api_version=AZURE_API_VERSION,
     ),
-    description="I am responsible for running tools and executing specific functions.",
-    instruction="I can execute tools and provide results as needed.",
+    description="""
+    Executes tools and specific functions on demand.
+    Acts as the direct interface to connected utilities, APIs, and system calls.
+    Designed for precision and reliability, ToolRunner ensures that every
+    execution is logged, reproducible, and formatted for downstream use.
+    Ideal for handling atomic operations, data retrieval, and context-sensitive
+    actions that require deterministic outputs.
+    
+    Strengths:
+      - Deterministic execution of tools
+      - Clear, structured result formatting
+      - Minimal overhead, optimized for speed
+    Failure Modes:
+      - Tool unavailable or misconfigured
+      - Malformed input or unexpected output
+      - Timeout or partial execution
+    Recovery Strategies:
+      - Retry with exponential backoff
+      - Validate inputs before execution
+      - Return structured error object for Orchestrator to handle
+    """,
+    instruction="""
+    Role: Tool Execution Specialist
+    Responsibilities:
+      - Run assigned tools reliably
+      - Process inputs and return structured outputs
+      - Ensure results are formatted for downstream agents
+    Constraints:
+      - Do not self-delegate
+      - Only use tools explicitly provided
+    """,
     tools=[connect_to_context7_mcp],
 )
-
 # Create orchestrator agent and assign sub-agents
 orchestrator = LlmAgent(
     name="Orchestrator",
@@ -120,8 +148,39 @@ orchestrator = LlmAgent(
         api_base=AZURE_API_BASE,
         api_version=AZURE_API_VERSION,
     ),
-    description="I coordinate tasks across multiple agents for efficient operation.",
-    instruction="I manage and delegate tasks to specialized agents.",
+    description="""
+    Coordinates and manages tasks across multiple agents to achieve
+    efficient, reliable outcomes. Functions as the central command layer,
+    interpreting high-level goals and breaking them into actionable steps.
+    Orchestrator ensures smooth collaboration between agents, resolves
+    conflicts, and maintains global context across workflows.
+    Optimized for scalability, adaptability, and balancing autonomy with oversight.
+    
+    Strengths:
+      - Global context awareness
+      - Dynamic task delegation
+      - Conflict resolution and escalation
+    Failure Modes:
+      - Deadlock between sub-agents
+      - Conflicting or redundant task assignments
+      - Loss of context across long workflows
+    Recovery Strategies:
+      - Escalate unresolved tasks to human operator
+      - Re-plan workflow with reduced scope
+      - Request clarification or additional input
+    """,
+    instruction="""
+    Role: Task Orchestrator
+    Responsibilities:
+      - Delegate tasks to specialized agents
+      - Manage workflows and monitor progress
+      - Integrate results into coherent outputs
+    Constraints:
+      - Avoid redundant execution
+      - Escalate only when sub-agents cannot resolve
+    Sub-agents:
+      - ToolRunner
+    """,
     sub_agents=[tool_runner],
 )
 
