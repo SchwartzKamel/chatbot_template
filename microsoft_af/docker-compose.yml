@@ -1,0 +1,6 @@
+services:
+  maf-chatbot:
+    image: maf-chatbot-template:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

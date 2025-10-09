@@ -30,7 +30,7 @@ RUN python3.12 -m venv /home/agent-smith/venv
 ENV PATH="/home/agent-smith/venv/bin:$PATH"
 
 # Install requirements
-COPY google_adk/requirements.txt .
+COPY microsoft_af/requirements.txt .
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r requirements.txt
 
@@ -38,7 +38,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 FROM base-image AS runner-image
 
 # Run the script
-ENTRYPOINT [ "adk", "web", "--host", "0.0.0.0", "--port", "8000" ]
+ENTRYPOINT [ "devui", "--host", "127.0.0.1", "--port", "8081"]
 
 RUN apt-get install -y \
       curl \
@@ -57,8 +57,7 @@ RUN mkdir /home/agent-smith/code
 WORKDIR /home/agent-smith/code
 
 # Copy app files
-COPY google_adk/app ./app
-COPY google_adk/.env .env
+COPY microsoft_af/joker_agent ./joker_agent
 
 # activate virtual environment
 ENV VIRTUAL_ENV=/home/agent-smith/venv \
